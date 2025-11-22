@@ -1,0 +1,56 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BBS-Dashboard</title>
+
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="~/css/StyleSheet.css" />
+
+    <link href="~/Images/unnamed.jpg" rel="icon" />
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar bg-success" id="dashSidebar">
+        <div class="d-flex justify-content-center my-2">
+            <img src="~/Images/unnamed.jpg" width="50%" height="auto" class="rounded-circle" />
+        </div>
+        <h4 class="text-light fw-bolder text-center h4 mb-5">BBS POS</h4>
+
+        <a class="side-btn my-3 ms-2 fw-bold" href="@Url.Action("Index")">Dashboard</a>
+        <a class="side-btn my-3 ms-2 fw-bold" href="@Url.Action("POS")">POS</a>
+        <a class="side-btn my-3 ms-2 fw-bold" href="@Url.Action("Stock")">Stock</a>
+        <a class="side-btn my-3 ms-2 fw-bold" href="@Url.Action("Sales")">Sales Report</a>
+        <a class="side-btn my-3 ms-2 fw-bold" href="@Url.Action("AddProduct")">Add Product</a>
+        <a class="side-btn my-3 ms-2 fw-bold" href="@Url.Action("AddQuantity")">Add Quantity</a>
+        <a href="@Url.Action("Logout")" class="btn btn-danger btn-sm ms-2 p-2">Logout</a>
+    </div>
+
+    <!-- Toggle button -->
+    <button class="sidebar-toggle" id="dashSidebarToggle" onclick="toggleSidebar()">☰</button>
+
+    <!-- Main Content -->
+    <div class="main-content" id="dashMainContent">
+        @RenderBody()
+    </div>
+
+    <!-- Scripts (LOAD IN ORDER) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="~/js/JavaScript.js" asp-append-version="true"></script>
+
+    <!-- Razor Section for page-specific scripts -->
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

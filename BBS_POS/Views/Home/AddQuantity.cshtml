@@ -1,0 +1,86 @@
+﻿@model BBS_POS.Models.Quantity
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h3 class="bg-success text-light py-3 text-center m-0">Add Product Quantity</h3>
+
+<div class="container-fluid mt-4">
+    <div class="row justify-content-between">
+        <div class="col-md-3 border border-success rounded-3 p-4 shadow-sm mt-3">
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            @if (TempData["Ex"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["Ex"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <form asp-action="AddQuantity" asp-controller="Home" method="post">
+
+                <!-- Product Selection -->
+                <div class="mb-3">
+                    <label for="p_id" class="form-label">Select Product</label>
+                    <select class="form-select" id="p_id" name="p_id" required>
+                        <option value="">-- Select Product --</option>
+                        @foreach (var product in ViewBag.Products as List<BBS_POS.Models.Product>)
+                        {
+                            <option value="@product.p_id">@product.p_name</option>
+                        }
+                    </select>
+                </div>
+
+                <!-- Box Quantity -->
+                <div class="mb-3">
+                    <label for="box_quantity" class="form-label">Box Quantity</label>
+                    <input type="number" class="form-control" id="box_quantity" name="box_quantity" required min="0" />
+                </div>
+
+                <button type="submit" class="btn btn-success w-100">Add Quantity</button>
+            </form>
+
+        </div>
+        <div class="col-md-8 border border-success rounded-3 p-4 shadow-sm mt-3 overflow-auto">
+            <h5 class="text-success fw-bolder mb-3">Existing Quantities</h5>
+            <table class="table table-bordered table-hover table-striped">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Product Name</th>
+                        <th>Box Quantity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (ViewBag.Quantities != null)
+                    {
+                        int i = 1;
+                        foreach (var q in ViewBag.Quantities)
+                        {
+                            <tr>
+                                <td>@i</td>
+                                <td>@q.ProductName</td>
+                                <td>@q.box_quantity</td>
+                            </tr>
+                            i++;
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="3" class="text-center">No quantities added yet.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

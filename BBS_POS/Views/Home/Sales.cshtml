@@ -1,0 +1,78 @@
+﻿@model List<BBS_POS.Models.Sale>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Calculate Totals
+    var totalBoxQty = Model.Sum(x => x.qty_box);
+    var totalPieceQty = Model.Sum(x => x.qty_pieces);
+    var totalPrice = Model.Sum(x => x.price);
+    var totalSaleAmount = Model.Sum(x => x.total);
+}
+
+<h3 class="bg-success text-light py-3 text-center mb-5">Sale's Record</h3>
+<div class="container-fluid pos-form" id="posForm">
+    <div class="row g-2 mb-3">
+        <div class="col-md-12 overflow-auto">
+            @if (TempData["Ex"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["Ex"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            <table class="table table-bordered table-striped table-hover table-responsive">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Product Name</th>
+                        <th>Qty (Box)</th>
+                        <th>Qty (Pieces)</th>
+                        <th>Price</th>
+                        <th>Total</th>
+                        <th>Sale Date</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (Model != null && Model.Count > 0)
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.s_id</td>
+                                <td>@item.p_name</td>
+                                <td>@item.qty_box</td>
+                                <td>@item.qty_pieces</td>
+                                <td>@item.price</td>
+                                <td>@item.total</td>
+                                <td>@item.s_date.ToString("yyyy-MM-dd HH:mm")</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center text-danger">No Sales Found</td>
+                        </tr>
+                    }
+                </tbody>
+
+                <!-- ===== TOTALS ROW ===== -->
+                @if (Model != null && Model.Count > 0)
+                {
+                    <tfoot>
+                        <tr class="bg-success text-white fw-bold">
+                            <td colspan="2" class="text-end">TOTAL:</td>
+                            <td>@totalBoxQty</td>
+                            <td>@totalPieceQty</td>
+                            <td>@totalPrice</td>
+                            <td>@totalSaleAmount</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                }
+            </table>
+        </div>
+    </div>
+</div>

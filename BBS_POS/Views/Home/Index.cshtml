@@ -1,0 +1,139 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var topProducts = ViewBag.TopProducts as IEnumerable<dynamic> ?? new List<dynamic>();
+}
+
+<div class="row mt-4">
+    @if (TempData["Ex"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Ex"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    <div class="col-md-3">
+        <div class="card dash-card text-center p-3 bg-success text-white">
+            <h5>Total Sales</h5>
+            <h3>@(ViewBag.TotalSales ?? 0)</h3>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card dash-card text-center p-3 bg-primary text-light">
+            <h5>Total Stock</h5>
+            <h3>@(ViewBag.TotalStock ?? 0)</h3>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card dash-card text-center p-3 bg-danger text-white">
+            <h5>Low Stock</h5>
+            <h3>@(ViewBag.LowStock ?? 0)</h3>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card dash-card text-center p-3 bg-info text-white">
+            <h5>Total Profit</h5>
+            <h3>@((ViewBag.TotalProfit ?? 0).ToString("0.00"))</h3>
+        </div>
+    </div>
+</div>
+
+<!-- Dynamic Products -->
+<div class="row mt-4" id="dashProducts">
+    @if (!topProducts.Any())
+    {
+        <div class="col-12">
+            <p class="text-center text-muted">No products available</p>
+        </div>
+    }
+    else
+    {
+        foreach (var p in topProducts)
+        {
+            var qty = p.Quantity ?? 0;
+            var buy = p.p_buy_price ?? 0;
+            var sale = p.p_sale_price ?? 0;
+
+            <div class="col-md-3 mb-3">
+                <div class="card dash-card product-card text-center p-3 @(qty < 5 ? "low-stock" : "")">
+                    <h5>@(p.p_name ?? "N/A")</h5>
+                    <p>Purchase: @buy</p>
+                    <p>Sale: @sale</p>
+                    <p>Quantity: @qty</p>
+
+                    <button class="btn btn-sell dash-btn-sell" disabled>
+                        @(qty > 0 ? "In Stock" : "Out of Stock")
+                    </button>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+<div class="row mt-5">
+    <div class="col-12">
+        <canvas id="demoLineChart" height="150"></canvas>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        @if (TempData["LoginSuccess"] != null)
+        {
+                <text>
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Welcome!',
+                        text: '@TempData["LoginSuccess"]'
+                    });
+                </text>
+        }
+    });
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const ctx = document.getElementById('demoLineChart').getContext('2d');
+        const demoChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [
+                    {
+                        label: 'Sales',
+                        data: [120, 150, 170, 140, 180, 200],
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        tension: 0.3
+                    },
+                    {
+                        label: 'Profit',
+                        data: [50, 70, 60, 80, 90, 100],
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        tension: 0.3
+                    },
+                    {
+                        label: 'Expenses',
+                        data: [80, 90, 100, 70, 60, 50],
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' },
+                    title: { display: true, text: 'Demo 3-Line Chart' }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    });
+</script>

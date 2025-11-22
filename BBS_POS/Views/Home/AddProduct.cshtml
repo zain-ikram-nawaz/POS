@@ -1,0 +1,189 @@
+﻿@model List<BBS_POS.Models.Product>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h3 class="bg-success text-light py-3 text-center m-0">Products</h3>
+
+<div class="container-fluid mt-4">
+    <div class="row d-flex justify-content-between">
+
+        <!-- Add Product Form -->
+        <div class="col-md-3 border border-success rounded-3 p-4 shadow-sm mt-3">
+            <h2 class="mb-3 text-success">Add Product</h2>
+
+            @if (TempData["success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <strong>@TempData["success"]</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            @if (TempData["Ex"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong>@TempData["Ex"]</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <form asp-action="AddProduct" asp-controller="Home" method="post">
+                <div class="mb-3">
+                    <label class="form-label">Product Name</label>
+                    <input name="p_name" class="form-control" required />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Sale Price</label>
+                    <input type="number" step="0.01" name="p_sale_price" class="form-control" required />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">purchasing Price</label>
+                    <input type="number" step="0.01" name="p_buy_price" class="form-control" required />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Box Size</label>
+                    <input type="number" name="p_box_size" class="form-control" required min="0" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Piece Size (enter 0 if none)</label>
+                    <input type="number" name="p_piece_size" class="form-control" required min="0" />
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">Add Product</button>
+            </form>
+        </div>
+
+        <!-- Product List Table -->
+        <div class="col-md-8 border border-success rounded-3 p-4 shadow-sm overflow-auto mt-3">
+            <h2 class="mb-5 text-success">Total Products</h2>
+
+            @if (TempData["DeleteProduct"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["DeleteProduct"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            @if (TempData["UpdateProduct"] != null)
+            {
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    @TempData["UpdateProduct"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <table class="table table-bordered table-striped table-hover table-responsive">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>purchasing Price</th>
+                        <th>Sale Price</th>
+                        <th>Box Size</th>
+                        <th>Piece Size</th>
+                        <th>Created At</th>
+                        <th>Updated At</th>
+                        <th>Update</th>
+                        <th>Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model)
+                    {
+                        <tr>
+                            <td>@row.p_id</td>
+                            <td>@row.p_name</td>
+                            <td>@row.p_buy_price</td>
+                            <td>@row.p_sale_price</td>
+                            <td>@row.p_box_size</td>
+                            <td>@row.p_piece_size</td>
+                            <td>@row.p_created_at</td>
+                            <td>@row.p_updated_at</td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-warning"
+                                        onclick="openUpdateModal('@row.p_id', '@row.p_name', '@row.p_buy_price', '@row.p_sale_price', '@row.p_box_size', '@row.p_piece_size')">
+                                    Update
+                                </button>
+                            </td>
+                            <td>
+                                <a class="btn btn-sm btn-danger" href="@Url.Action("DeleteProduct", new { id = row.p_id })">
+                                    Delete
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- UPDATE PRODUCT MODAL -->
+<div class="modal fade" id="updateModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="updateForm" method="post" action="UpdateProduct">
+                <div class="modal-header">
+                    <h5 class="modal-title">Update Product</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <input type="hidden" name="p_id" id="p_id" />
+
+                    <div class="mb-2">
+                        <label>Name</label>
+                        <input class="form-control" id="p_name" name="p_name" />
+                    </div>
+
+                    <div class="mb-2">
+                        <label>purchasing Price</label>
+                        <input class="form-control" id="p_buy_price" name="p_buy_price" />
+                    </div>
+
+                    <div class="mb-2">
+                        <label>Sale Price</label>
+                        <input class="form-control" id="p_sale_price" name="p_sale_price" />
+                    </div>
+
+                    <div class="mb-2">
+                        <label>Box Size</label>
+                        <input class="form-control" id="p_box_size" name="p_box_size" />
+                    </div>
+
+                    <div class="mb-2">
+                        <label>Piece Size</label>
+                        <input class="form-control" id="p_piece_size" name="p_piece_size" />
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-primary" type="submit">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+<script>
+    function openUpdateModal(id, name, buy, sale, box, piece) {
+        document.getElementById("p_id").value = id;
+        document.getElementById("p_name").value = name;
+        document.getElementById("p_buy_price").value = buy;
+        document.getElementById("p_sale_price").value = sale;
+        document.getElementById("p_box_size").value = box;
+        document.getElementById("p_piece_size").value = piece;
+
+        var modal = new bootstrap.Modal(document.getElementById('updateModal'));
+        modal.show();
+    }
+</script>

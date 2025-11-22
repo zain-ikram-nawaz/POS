@@ -1,0 +1,314 @@
+﻿@model List<BBS_POS.Models.Product>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<h3 class="bg-success text-light py-3 text-center m-0">POS</h3>
+
+<div class="container-fluid mt-4">
+    <div class="pos-form shadow-sm">
+
+        <div class="card-header text-success">
+            <h4 class="m-0">Point of Sale</h4>
+        </div>
+
+        <div class="card-body">
+            <div class="row g-2 mb-3">
+                @if (TempData["Ex"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["Ex"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+                <!-- Product Input -->
+                <div class="col-md-6">
+                    <label for="posTxtProduct" class="form-label">Product</label>
+                    <input list="productList" id="posTxtProduct" class="form-control" placeholder="Select Product">
+                    <datalist id="productList">
+                        @foreach (var item in Model)
+                        {
+                            <option value="@item.p_name"
+                                    data-id="@item.p_id"
+                                    data-price="@item.p_sale_price"
+                                    data-boxsize="@item.p_box_size"
+                                    data-piece="@item.p_piece_size">
+                            </option>
+                        }
+                    </datalist>
+                </div>
+
+                <!-- Box Qty -->
+                <div class="col-md-2">
+                    <label for="posTxtBox" class="form-label">Box</label>
+                    <input type="text" id="posTxtBox" class="form-control numeric-only" placeholder="Box">
+                </div>
+
+                <!-- Piece Qty -->
+                <div class="col-md-2">
+                    <label for="posTxtPiece" class="form-label">Piece</label>
+                    <input type="text" id="posTxtPiece" class="form-control numeric-only" placeholder="Pieces">
+                </div>
+
+                <!-- Add Button -->
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="button" id="posBtnAddProduct" class="btn btn-success w-100">Add To Cart</button>
+                </div>
+            </div>
+
+            <!-- Cart Table -->
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Product</th>
+                            <th>Box</th>
+                            <th>Piece</th>
+                            <th>Price</th>
+                            <th>Total</th>
+                            <th>Update</th>
+                            <th>Remove</th>
+                        </tr>
+                    </thead>
+                    <tbody id="posCartBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Total & Save -->
+        <div class="card-footer d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Total: Rs <span id="posLblTotal">0</span></h5>
+            <button class="btn btn-primary" id="posBtnSave">Save Sale</button>
+        </div>
+
+    </div>
+</div>
+
+<script>
+
+    let cart = [];
+
+    const productInput = document.getElementById('posTxtProduct');
+    const pieceInput = document.getElementById('posTxtPiece');
+    const boxInput = document.getElementById('posTxtBox');
+
+    function applyNumericOnly() {
+        document.querySelectorAll('.numeric-only').forEach(input => {
+            input.addEventListener('input', function () {
+                this.value = this.value.replace(/[^0-9]/g, '');
+            });
+        });
+    }
+    applyNumericOnly();
+
+    function updatePieceReadonly() {
+        const productName = productInput.value.trim();
+        const option = Array.from(document.querySelectorAll('#productList option')).find(o => o.value === productName);
+
+        if (option) {
+            const pieceSize = parseInt(option.dataset.piece) || 0;
+
+            if (pieceSize === 0) {
+                pieceInput.value = 0;
+                pieceInput.readOnly = true;
+                pieceInput.style.backgroundColor = '#e9ecef';
+            } else {
+                pieceInput.readOnly = false;
+                pieceInput.value = '';
+                pieceInput.style.backgroundColor = '';
+            }
+        }
+    }
+
+    productInput.addEventListener('input', updatePieceReadonly);
+    productInput.addEventListener('change', updatePieceReadonly);
+
+
+    // ================================
+    // RENDER CART
+    // ================================
+    function renderCart(cartBodyId, totalLabelId) {
+        const cartBody = document.getElementById(cartBodyId);
+        cartBody.innerHTML = '';
+        let sum = 0;
+
+        cart.forEach((item, index) => {
+
+            const isReadonlyPiece = (item.pieceSize === 0);
+            const pieceValue = item.piece;
+
+            cartBody.innerHTML += `
+                <tr>
+                    <td>${item.name}</td>
+                    <td><input type="text" value="${item.box}" class="form-control qty-input-box numeric-only" data-index="${index}" style="width:80px;"></td>
+
+                    <td>
+                        <input type="text"
+                            value="${pieceValue}"
+                            class="form-control qty-input-piece numeric-only"
+                            data-index="${index}"
+                            style="width:80px; ${isReadonlyPiece ? 'background-color:#e9ecef;' : ''}"
+                            ${isReadonlyPiece ? 'readonly' : ''}>
+                    </td>
+
+                    <td>${item.price}</td>
+                    <td>${item.total.toFixed(2)}</td>
+
+                    <td><button class="btn btn-sm btn-warning update-btn" data-index="${index}">Update</button></td>
+                    <td><button class="btn btn-sm btn-danger remove-btn" data-index="${index}">Remove</button></td>
+                </tr>
+            `;
+
+            sum += item.total;
+        });
+
+        document.getElementById(totalLabelId).textContent = sum.toFixed(2);
+
+        applyNumericOnly();
+
+
+        // UPDATE BUTTON FIXED
+        document.querySelectorAll('.update-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+
+                const idx = this.dataset.index;
+
+                const newBox = parseInt(document.querySelector(`.qty-input-box[data-index="${idx}"]`).value) || 0;
+                const pieceInputElem = document.querySelector(`.qty-input-piece[data-index="${idx}"]`);
+                const newPiece = pieceInputElem ? parseInt(pieceInputElem.value) || 0 : 0;
+
+                cart[idx].box = newBox;
+                cart[idx].piece = newPiece;
+
+
+                // ***** CALCULATE CORRECT TOTAL *****
+                if (cart[idx].pieceSize === 0) {
+
+                    cart[idx].total = newBox * cart[idx].price;
+                    cart[idx].piece = 0;
+
+                } else {
+
+                    const pricePerPiece = cart[idx].price / (cart[idx].pieceSize || 1);
+                    cart[idx].total = (newBox * cart[idx].price) + (newPiece * pricePerPiece);
+                }
+
+                renderCart(cartBodyId, totalLabelId);
+            });
+        });
+
+
+        // REMOVE BUTTON
+        document.querySelectorAll('.remove-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                cart.splice(this.dataset.index, 1);
+                renderCart(cartBodyId, totalLabelId);
+            });
+        });
+
+    }
+
+
+    // ================================
+    // ADD PRODUCT
+    // ================================
+    document.getElementById('posBtnAddProduct').addEventListener('click', function () {
+
+        const name = productInput.value.trim();
+        const box = parseInt(boxInput.value) || 0;
+        const piece = pieceInput.readOnly ? 0 : parseInt(pieceInput.value) || 0;
+
+        if (!name || (box === 0 && piece === 0)) {
+            Swal.fire({ icon: "warning", title: "Invalid Entry", text: "Please enter box or piece quantity." });
+            return;
+        }
+
+        const option = Array.from(document.querySelectorAll('#productList option')).find(o => o.value === name);
+
+        if (!option) {
+            Swal.fire({ icon: "error", title: "Product Not Found!" });
+            return;
+        }
+
+        const price = parseFloat(option.dataset.price);
+        const boxSize = parseInt(option.dataset.boxsize);
+        const pieceSize = parseInt(option.dataset.piece) || 0;
+        const p_id = parseInt(option.dataset.id);
+
+
+        // ****** PIECE CALCULATION FIXED ******
+        let total = 0;
+        if (pieceSize === 0) {
+            total = box * price;
+        } else {
+            const pricePerPiece = price / (pieceSize || 1);
+            total = (box * price) + (piece * pricePerPiece);
+        }
+
+
+        const existing = cart.find(p => p.p_id === p_id);
+
+        if (existing) {
+
+            existing.box += box;
+            existing.piece += piece;
+
+            if (existing.pieceSize === 0) {
+                existing.total = existing.box * existing.price;
+                existing.piece = 0;
+            } else {
+                const pricePerPiece = existing.price / (existing.pieceSize || 1);
+                existing.total = (existing.box * existing.price) + (existing.piece * pricePerPiece);
+            }
+
+        } else {
+            cart.push({ name, box, piece, price, boxSize, pieceSize, total, p_id });
+        }
+
+        renderCart('posCartBody', 'posLblTotal');
+
+        productInput.value = '';
+        boxInput.value = '';
+        if (!pieceInput.readOnly) pieceInput.value = '';
+    });
+
+
+    // ================================
+    // SAVE SALE
+    // ================================
+    document.getElementById('posBtnSave').addEventListener('click', function () {
+
+        if (cart.length === 0) {
+            Swal.fire({ icon: "warning", title: "Cart is empty!", text: "Please add a product before saving." });
+            return;
+        }
+
+        const saleData = cart.map(item => ({
+            p_id: item.p_id,
+            p_name: item.name,
+            qty_box: item.box,
+            qty_pieces: item.piece,
+            price: item.price,
+            total: item.total
+        }));
+
+        Swal.fire({ title: "Saving...", text: "Please wait", allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("SaveSale", "Home")',
+            contentType: "application/json",
+            data: JSON.stringify(saleData),
+            success: function () {
+                Swal.fire({ icon: "success", title: "Sale Saved!", timer: 2000, showConfirmButton: false });
+                cart = [];
+                renderCart('posCartBody', 'posLblTotal');
+            },
+            error: function () {
+                Swal.fire({ icon: "error", title: "Error!", text: "Failed to save sale." });
+            }
+        });
+
+    });
+
+</script>
