@@ -1,5 +1,5 @@
 {
   "build": {
-    "builder": "dotnet"
+    "builder": "dotnet-core"
   }
 }
